@@ -30,10 +30,6 @@ public class MainActivity extends AppCompatActivity {
             mCurrentPosition = savedInstanceState.getInt(PLAYBACK_TIME);
         }
 
-        MediaController controller = new MediaController(this);
-        controller.setMediaPlayer(mVideoView);
-        mVideoView.setMediaController(controller);
-
         mBufferingTextView = findViewById(R.id.buffering_textview);
     }
 
@@ -68,6 +64,16 @@ public class MainActivity extends AppCompatActivity {
                 new MediaPlayer.OnPreparedListener() {
                     @Override
                     public void onPrepared(MediaPlayer mediaPlayer) {
+                        mediaPlayer.setOnVideoSizeChangedListener(new MediaPlayer.OnVideoSizeChangedListener() {
+                            @Override
+                            public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+                                MediaController controller = new MediaController(MainActivity.this);
+                                controller.setMediaPlayer(mVideoView);
+                                mVideoView.setMediaController(controller);
+                                controller.setAnchorView(mVideoView);
+                            }
+                        });
+
                         mBufferingTextView.setVisibility(VideoView.INVISIBLE);
 
                         if (mCurrentPosition > 0) {
