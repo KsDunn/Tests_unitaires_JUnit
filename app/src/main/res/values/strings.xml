@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">playerVideo</string>
+    <string name="buffer">Chargement...</string>
 </resources>
