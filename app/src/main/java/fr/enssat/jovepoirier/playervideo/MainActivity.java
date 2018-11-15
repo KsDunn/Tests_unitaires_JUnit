@@ -6,13 +6,16 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.webkit.URLUtil;
 import android.widget.MediaController;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 public class MainActivity extends AppCompatActivity {
 
     private static final String VIDEO_SAMPLE = "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4";
     private static final String PLAYBACK_TIME = "play_time";
+    private TextView mBufferingTextView;
     private VideoView mVideoView;
     private int mCurrentPosition = 0;
 
@@ -31,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         controller.setMediaPlayer(mVideoView);
         mVideoView.setMediaController(controller);
 
-
+        mBufferingTextView = findViewById(R.id.buffering_textview);
     }
 
     @Override
@@ -57,17 +60,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializePlayer() {
+        mBufferingTextView.setVisibility(VideoView.VISIBLE);
         Uri videoUri = getMedia(VIDEO_SAMPLE);
         mVideoView.setVideoURI(videoUri);
 
-        if (mCurrentPosition > 0) {
-            mVideoView.seekTo(mCurrentPosition);
-        } else {
-            // Skipping to 1 shows the first frame of the video.
-            mVideoView.seekTo(1);
-        }
+        mVideoView.setOnPreparedListener(
+                new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mediaPlayer) {
+                        mBufferingTextView.setVisibility(VideoView.INVISIBLE);
 
-        mVideoView.start();
+                        if (mCurrentPosition > 0) {
+                            mVideoView.seekTo(mCurrentPosition);
+                        } else {
+                            mVideoView.seekTo(1);
+                        }
+
+                        mVideoView.start();
+                    }
+                });
 
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -84,7 +95,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Uri getMedia(String media) {
-        return Uri.parse(media);
+        if (URLUtil.isValidUrl(media)) {
+            return Uri.parse(media);
+        }
+        return null;
     }
 
     @Override
