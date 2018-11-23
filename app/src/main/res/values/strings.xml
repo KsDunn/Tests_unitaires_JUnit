@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">playerVideo</string>
     <string name="buffer">Chargement...</string>
+    <string name="chap1">Chapitre 1</string>
+    <string name="chap2">Chapitre 2</string>
+    <string name="chap3">Chapitre 3</string>
 </resources>
