@@ -13,6 +13,7 @@ import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,9 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private VideoView mVideoView;
     private WebView mWebView;
     private PlayerViewModel mPlayer;
-    private Button but1;
-    private Button but2;
-    private Button but3;
+    private LinearLayout layout;
     private List<Chapitre> listeChapitre;
 
     @Override
@@ -45,10 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
         mVideoView = findViewById(R.id.videoview);
         mWebView = findViewById(R.id.webview);
-        but1 = findViewById(R.id.button1);
-        but2 = findViewById(R.id.button2);
-        but3 = findViewById(R.id.button3);
         mBufferingTextView = findViewById(R.id.buffering_textview);
+        layout = findViewById(R.id.linearlayout);
 
         mWebView.setWebViewClient(new WebViewClient());
 
@@ -77,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
 
         listeChapitre = new ArrayList<Chapitre>();
         Chapitre chap1 = new Chapitre();
-        Chapitre chap2 = new Chapitre("Chapitre 2", 1000, "https://www.wikipedia.org");
-        Chapitre chap3 = new Chapitre("Chapitre 3", 2000, "https://fr.wiktionary.org/wiki/cucurbitacée");
+        Chapitre chap2 = new Chapitre("Chapitre 2", 200000, "https://www.wikipedia.org");
+        Chapitre chap3 = new Chapitre("Chapitre 3", 400000, "https://fr.wiktionary.org/wiki/cucurbitacée");
 
         listeChapitre.add(chap1);
         listeChapitre.add(chap2);
@@ -88,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
         while(iter.hasNext()){
             final Chapitre chapitre = (Chapitre)iter.next();
             Button but = new Button(this);
+            but.setText(chapitre.getTitre());
+            layout.addView(but);
 
             but.setOnClickListener(new View.OnClickListener() {
                 @Override
