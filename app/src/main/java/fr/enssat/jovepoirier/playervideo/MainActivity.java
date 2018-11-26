@@ -2,32 +2,41 @@ package fr.enssat.jovepoirier.playervideo;
 
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModel;
-import android.arch.lifecycle.ViewModelProvider;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
+import android.view.View;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String VIDEO_SAMPLE = "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4";
+    private MutableLiveData<String> urlWebView = new MutableLiveData<String>();
+    private MutableLiveData<Integer> mCurrentPosition = new MutableLiveData<Integer>();
     private static final String PLAYBACK_TIME = "play_time";
     private TextView mBufferingTextView;
     private VideoView mVideoView;
     private WebView mWebView;
     private PlayerViewModel mPlayer;
-    private String WEBVIEW_URL = "https://en.wikipedia.org/wiki/Big_Buck_Bunny";
-    private int mCurrentPosition = 0;
+    private Button but1;
+    private Button but2;
+    private Button but3;
+    private List<Chapitre> listeChapitre;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,31 +45,73 @@ public class MainActivity extends AppCompatActivity {
 
         mVideoView = findViewById(R.id.videoview);
         mWebView = findViewById(R.id.webview);
+        but1 = findViewById(R.id.button1);
+        but2 = findViewById(R.id.button2);
+        but3 = findViewById(R.id.button3);
+        mBufferingTextView = findViewById(R.id.buffering_textview);
+
         mWebView.setWebViewClient(new WebViewClient());
 
-        mPlayer = ViewModelProviders.of(this).get(PlayerViewModel.class);
+        urlWebView.setValue("https://en.wikipedia.org/wiki/Big_Buck_Bunny");
+        mCurrentPosition.setValue(0);
 
-        final Observer<String> urlObserver = new Observer<String>() {
+        mPlayer = new PlayerViewModel(urlWebView, mCurrentPosition);
+
+        mPlayer.getmUrlWebView().observe(this, new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
                 mWebView.loadUrl(s);
             }
-        };
-
-        final Observer<Integer> positionObserver = new Observer<Integer>() {
+        });
+        mPlayer.getmPositionVideo().observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(@Nullable Integer i) {
                 mVideoView.seekTo(i);
             }
-        };
-
-        mPlayer.getUrlWebView().observe(this, urlObserver);
+        });
 
         if (savedInstanceState != null) {
-            mCurrentPosition = savedInstanceState.getInt(PLAYBACK_TIME);
+            mCurrentPosition.setValue(savedInstanceState.getInt(PLAYBACK_TIME));
+            mPlayer.setmPositionVideo((mCurrentPosition));
         }
 
-        mBufferingTextView = findViewById(R.id.buffering_textview);
+        listeChapitre = new ArrayList<Chapitre>();
+        Chapitre chap1 = new Chapitre();
+        Chapitre chap2 = new Chapitre("Chapitre 2", 1000, "https://www.wikipedia.org");
+        Chapitre chap3 = new Chapitre("Chapitre 3", 2000, "https://fr.wiktionary.org/wiki/cucurbitacée");
+
+        listeChapitre.add(chap1);
+        listeChapitre.add(chap2);
+        listeChapitre.add(chap3);
+
+        Iterator iter = listeChapitre.iterator();
+        while(iter.hasNext()){
+            final Chapitre chapitre = (Chapitre)iter.next();
+            Button but = new Button(this);
+
+            but.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mCurrentPosition.setValue(chapitre.getPosition());
+                    mPlayer.setmPositionVideo(mCurrentPosition);
+
+                    urlWebView.setValue(chapitre.getUrl());
+                    mPlayer.setmUrlWebView(urlWebView);
+                }
+            });
+        }
+
+
+     /*   but3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentPosition.setValue(chap3.getPosition());
+                mPlayer.setmPositionVideo(mCurrentPosition);
+
+                urlWebView.setValue(chap3.getUrl());
+                mPlayer.setmUrlWebView(urlWebView);
+            }
+        });*/
     }
 
     @Override
@@ -106,10 +157,11 @@ public class MainActivity extends AppCompatActivity {
 
                         mBufferingTextView.setVisibility(VideoView.INVISIBLE);
 
-                        if (mCurrentPosition > 0) {
-                            mVideoView.seekTo(mCurrentPosition);
+                        if (mCurrentPosition.getValue() > 0) {
+                            mPlayer.setmPositionVideo(mCurrentPosition);
                         } else {
-                            mVideoView.seekTo(1);
+                            mCurrentPosition.setValue(1);
+                            mPlayer.setmPositionVideo(mCurrentPosition);
                         }
 
                         mVideoView.start();
@@ -121,7 +173,8 @@ public class MainActivity extends AppCompatActivity {
             public void onCompletion(MediaPlayer mediaPlayer) {
                 Toast.makeText(MainActivity.this, "Vidéo terminée",
                     Toast.LENGTH_SHORT).show();
-                mVideoView.seekTo(1);
+                mCurrentPosition.setValue(1);
+                mPlayer.setmPositionVideo(mCurrentPosition);
             }
         });
     }
@@ -143,14 +196,4 @@ public class MainActivity extends AppCompatActivity {
 
         outState.putInt(PLAYBACK_TIME, mVideoView.getCurrentPosition());
     }
-
-    public String getWEBVIEW_URL() {
-        return WEBVIEW_URL;
-    }
-
-    public void setWEBVIEW_URL(String WEBVIEW_URL) {
-        this.WEBVIEW_URL = WEBVIEW_URL;
-    }
-
-
 }
